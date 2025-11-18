@@ -1,0 +1,10 @@
+var a = 123.45;
+// This is a single-line comment.
+var b = a + 10;
+print "Hello, Hill!";
+
+if (b > 100) {
+    b = nil;
+} else {
+    b = true;
+}
