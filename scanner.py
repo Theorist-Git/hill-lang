@@ -175,27 +175,35 @@ class Scanner:
             return
         # Handling Comments
         elif char == '/':
-            # case when // exists
+            # Single line comments
             if self.match_next_token('/'):
                 while self.peek() != '\n' and not self.buffer_consumed():
-                    _ = self.get_current_char_and_advance()
+                    self.get_current_char_and_advance()
+
+            # Multi Line comments
             elif self.match_next_token('*'):
-                while not (self.peek() == '*' and self.peek(jump=1) == '/') and not self.buffer_consumed():
+                cnt = 1
+
+                while cnt > 0 and not self.buffer_consumed():
                     if self.peek() == '\n':
                         self.line += 1
 
-                    _ = self.get_current_char_and_advance()
+                    if self.peek() == '/' and self.peek(jump=1) == '*':
+                        cnt += 1
+                        self.get_current_char_and_advance()
+                        self.get_current_char_and_advance()
+                        continue
 
-                if self.buffer_consumed():
-                    errors.error(line=self.line, message='Unterminated mutli line comment')
-                    return
+                    if self.peek() == '*' and self.peek(jump=1) == '/':
+                        cnt -= 1
+                        self.get_current_char_and_advance()
+                        self.get_current_char_and_advance()
+                        continue
 
-                # /* source text */
-                #                ^ --- current will be on this index
-                # so we need to consume */ as well
+                    self.get_current_char_and_advance()
 
-                _ = self.get_current_char_and_advance()
-                _ = self.get_current_char_and_advance()
+                if cnt > 0:
+                    errors.error(line=self.line, message='Unterminated multi-line comment')
             else:
                 self.add_token(token_type=TokenType.SLASH)
 
