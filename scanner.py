@@ -179,6 +179,23 @@ class Scanner:
             if self.match_next_token('/'):
                 while self.peek() != '\n' and not self.buffer_consumed():
                     _ = self.get_current_char_and_advance()
+            elif self.match_next_token('*'):
+                while not (self.peek() == '*' and self.peek(jump=1) == '/') and not self.buffer_consumed():
+                    if self.peek() == '\n':
+                        self.line += 1
+
+                    _ = self.get_current_char_and_advance()
+
+                if self.buffer_consumed():
+                    errors.error(line=self.line, message='Unterminated mutli line comment')
+                    return
+
+                # /* source text */
+                #                ^ --- current will be on this index
+                # so we need to consume */ as well
+
+                _ = self.get_current_char_and_advance()
+                _ = self.get_current_char_and_advance()
             else:
                 self.add_token(token_type=TokenType.SLASH)
 
