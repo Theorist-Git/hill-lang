@@ -87,13 +87,13 @@ class Scanner:
             if self.peek() == '\n':
                 self.line += 1
 
-            _ = self.get_current_char_and_advance()
+            self.get_current_char_and_advance()
 
         if self.buffer_consumed():
             errors.error(line=self.line, message='Unterminated string literal')
             return
 
-        _ = self.get_current_char_and_advance()
+        self.get_current_char_and_advance()
         string_literal: str = self.source[self.start + 1: self.current - 1]
 
         self.add_token(token_type=TokenType.STRING, literal=string_literal)
@@ -111,13 +111,13 @@ class Scanner:
 
     def read_in_number_literal(self):
         while self.is_digit(self.peek()):
-            _ = self.get_current_char_and_advance()
+            self.get_current_char_and_advance()
 
         if self.peek() == '.' and self.is_digit(self.peek(jump=1)):
-            _ = self.get_current_char_and_advance()
+            self.get_current_char_and_advance()
 
             while self.is_digit(self.peek()):
-                _ = self.get_current_char_and_advance()
+                self.get_current_char_and_advance()
 
         self.add_token(
             token_type=TokenType.NUMBER,
@@ -126,7 +126,7 @@ class Scanner:
 
     def read_in_identifier(self):
         while self.is_alpha_numeric(self.peek()):
-            _ = self.get_current_char_and_advance()
+            self.get_current_char_and_advance()
 
         identifier = self.source[self.start: self.current]
         token_type: TokenType = self.KEYWORD_MAP.get(identifier)
