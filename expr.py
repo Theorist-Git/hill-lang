@@ -19,6 +19,9 @@ class Visitor(ABC):
     def visit_literalexpr(self, expr):
         pass
 
+    def visit_commaexpr(self, expr):
+        pass
+
 class Expr(ABC):
     @abstractmethod
     def accept(self, visitor):

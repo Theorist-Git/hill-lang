@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from hill_token import Token, TokenType
 
 import errors
@@ -48,15 +48,23 @@ class Scanner:
         self.tokens: List[Token] = []
 
     def buffer_consumed(self) -> bool:
+        """Checks if `current` pointer has read the entire source string"""
         return self.current >= len(self.source)
 
     def get_current_char_and_advance(self):
+        """returns source[current] and increments `current` by 1. Essentially return source[current++]"""
         char = self.source[self.current]
         self.current += 1
 
         return char
 
     def match_next_token(self, expected: str) -> bool:
+        """
+        After having consumed a char using `get_current_char_and_advance(self)`
+        `current` now points to the next character in source string
+        If there are still characters left in the source buffer, `match_next_token(self, expected: str) -> bool`
+        checks if the consumed character matches `expected` character pointed to by current ptr.
+        """
         if self.buffer_consumed():
             return False
 
@@ -67,12 +75,23 @@ class Scanner:
         return True
 
     def peek(self, jump=0) -> str:
+        """
+        Peeks `jump` characters ahead of `current`. Defaults to returning `source[current]`
+        Returns '\0' if jump moves past end of source string.
+        """
+        if jump < 0:
+            raise ValueError("Jump must be Non Negative (>= 0)")
         if self.current + jump >= len(self.source):
             return '\0'
 
         return self.source[self.current + jump]
 
     def add_token(self, token_type: TokenType, literal=None):
+        """
+        Appends a Token to Token List.
+        Also defines the lexeme.
+        Literal is None by default.
+        """
         lexeme = self.source[self.start: self.current]
 
         self.tokens.append(Token(
@@ -90,10 +109,16 @@ class Scanner:
             self.get_current_char_and_advance()
 
         if self.buffer_consumed():
-            errors.error(line=self.line, message='Unterminated string literal')
+            # TODO: Fix this, create a new type or something that makes sense. EOF is just placeholder.
+            errors.error(Token(TokenType.EOF, "", None, self.line), message='Unterminated string literal')
             return
 
+        # Consume the closing `"`
         self.get_current_char_and_advance()
+
+        #        `start ptr`--⌄           `current`--⌄
+        # This is called when "source buffer literal"-
+        # Therefore to get string literal we must do [start + 1, current - 1)
         string_literal: str = self.source[self.start + 1: self.current - 1]
 
         self.add_token(token_type=TokenType.STRING, literal=string_literal)
@@ -203,7 +228,11 @@ class Scanner:
                     self.get_current_char_and_advance()
 
                 if cnt > 0:
-                    errors.error(line=self.line, message='Unterminated multi-line comment')
+                    # TODO: Fix this, create a new type or something that makes sense. EOF is just placeholder.
+                    errors.error(
+                        Token(TokenType.EOF, "", None, self.line),
+                        message='Unterminated multi-line comment'
+                    )
             else:
                 self.add_token(token_type=TokenType.SLASH)
 
@@ -230,7 +259,10 @@ class Scanner:
 
             return
         else:
-            errors.error(line=self.line, message="Unexpected Character")
+            errors.error(
+                Token(TokenType.EOF, "", None, self.line),
+                message="Unexpected Character"
+            )
 
             return
 

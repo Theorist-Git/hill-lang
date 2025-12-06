@@ -1,5 +1,8 @@
 from enum import Enum, auto
 
+"""
+Defines all the valid TokenTypes for hill in an enum.
+"""
 class TokenType(Enum):
     # Single-character tokens 
     LEFT_PAREN = auto()

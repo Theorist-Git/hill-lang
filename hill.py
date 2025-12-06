@@ -1,6 +1,8 @@
 from sys import argv, exit
 from pathlib import Path
 from scanner import Scanner
+from parser import Parser
+from ast_printer import AstPrinter
 
 import errors
 
@@ -10,19 +12,26 @@ class Hill:
         print(args)
 
         if len(args) > 1:
-            print("Usage: hill_lang.py <script>")
+            print("Usage: hill.py <script>")
             exit(64)
         elif len(args) == 1:
             self.run_program(Path(args[0]))
         else:
             self.run_prompt()
 
-    def run(self, source: str):
+    @staticmethod
+    def run(source: str):
         scanner = Scanner(source=source)
         tokens = scanner.scan_tokens()
+        parser = Parser(tokens=tokens)
+        expression = parser.parse()
 
-        for token in tokens:
-            print(f"{token.token_type}; {token.lexeme}; {token.literal}; {token.line}")
+        if errors.had_error:
+            return
+
+        printer = AstPrinter(reverse_polish_notation=True)
+        print(printer.print(expression))
+
 
     def run_program(self, file_path: Path):
         try:
